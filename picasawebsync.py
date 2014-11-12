@@ -22,7 +22,7 @@ PICASA_MAX_FREE_IMAGE_DIMENSION = 2048
 def which(program):
 	def is_exe(fpath):
 		return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-	
+
 	fpath, fname = os.path.split(program)
 	if fpath:
 		if is_exe(program):
@@ -33,7 +33,7 @@ def which(program):
 			exe_file = os.path.join(path, program)
 			if is_exe(exe_file):
 				return exe_file
-	
+
 	return None
 
 jHead = which('jhead')
@@ -42,8 +42,8 @@ jHead = which('jhead')
 # http://stackoverflow.com/questions/273946/how-do-i-resize-an-image-using-pil-and-maintain-its-aspect-ratio
 def shrinkIfNeeded(path):
 	if args.shrink:
-		imagePath = tempfile.NamedTemporaryFile(delete=False) 
-		try:	 
+		imagePath = tempfile.NamedTemporaryFile(delete=False)
+		try:
 			im = Image.open(path)
 			if (im.size[0] > PICASA_MAX_FREE_IMAGE_DIMENSION  or im.size[1] > PICASA_MAX_FREE_IMAGE_DIMENSION):
 				print "Shrinking " + path
@@ -55,8 +55,8 @@ def shrinkIfNeeded(path):
 		except IOError:
 			print "cannot create thumbnail for '%s' - using full size image" % path
 	return None
-	  
- 
+
+
 # Borrowed from http://www.daniweb.com/software-development/python/code/216610/timing-a-function-python
 def print_timing(func):
 	def wrapper(*arg):
@@ -70,7 +70,7 @@ def print_timing(func):
 # Upload video code came form http://nathanvangheem.com/news/moving-to-picasa-update
 class VideoEntry(gdata.photos.PhotoEntry):
 	pass
-	
+
 gdata.photos.VideoEntry = VideoEntry
 
 def InsertVideo(self, album_or_uri, video, filename_or_handle, content_type='image/jpeg'):
@@ -97,8 +97,8 @@ def InsertVideo(self, album_or_uri, video, filename_or_handle, content_type='ima
 	elif hasattr(filename_or_handle, 'read'):# it's a file-like resource
 		if hasattr(filename_or_handle, 'seek'):
 			filename_or_handle.seek(0) # rewind pointer to the start of the file
-		# gdata.MediaSource needs the content length, so read the whole image 
-		file_handle = StringIO.StringIO(filename_or_handle.read()) 
+		# gdata.MediaSource needs the content length, so read the whole image
+		file_handle = StringIO.StringIO(filename_or_handle.read())
 		name = 'image'
 		if hasattr(filename_or_handle, 'name'):
 			name = filename_or_handle.name
@@ -121,7 +121,7 @@ def InsertVideo(self, album_or_uri, video, filename_or_handle, content_type='ima
 			converter=None)
 	except gdata.service.RequestError, e:
 		raise GooglePhotosException(e.args[0])
-		
+
 gdata.photos.service.PhotosService.InsertVideo = InsertVideo
 
 # Class to store details of an album
@@ -150,8 +150,8 @@ class Albums:
 				for fname in fileList :
 					fullFilename = os.path.join(dirName, fname)
 					if not re.match(excludes, fullFilename):
-						# figure out the filename relative to the root dir of the album (to ensure uniqeness) 
-						relFileName = re.sub("^/","", fullFilename[len(thisRoot):])
+						# figure out the filename relative to the root dir of the album (to ensure uniqeness)
+						relFileName = fullFilename[len(thisRoot):].replace(os.sep,"",1)
 						fileEntry = FileEntry(relFileName, fullFilename,  None, True, album)
 						album.entries[relFileName] = fileEntry
 		if verbose:
@@ -162,7 +162,7 @@ class Albums:
 		for webAlbum in webAlbums.entry:
 			if int(webAlbum.numphotos.text) == 0:
 				print "Deleting empty album %s" % webAlbum.title.text
-				gd_client.Delete(webAlbum)				   
+				gd_client.Delete(webAlbum)
 	# @print_timing
 	def scanWebAlbums(self, deletedups, server_excludes):
 		# walk the web album finding albums there
@@ -174,7 +174,7 @@ class Albums:
 					print ('Skipping (because matches server exclude) web-album %s (containing %s files)' % (webAlbum.title.text, webAlbum.numphotos.text))
 			else:
 				if verbose:
-					print ('Scanning web-album %s (containing %s files)' % (webAlbum.title.text, webAlbum.numphotos.text))		
+					print ('Scanning web-album %s (containing %s files)' % (webAlbum.title.text, webAlbum.numphotos.text))
 				# print "Album %s is %s in %s" % (webAlbumTitle, webAlbumTitle in self.albums,	",".join(self.albums))
 				if webAlbumTitle in self.albums:
 					foundAlbum = self.albums[webAlbumTitle]
@@ -183,7 +183,7 @@ class Albums:
 					album = AlbumEntry(os.path.join(self.rootDirs[0], webAlbum.title.text),	 webAlbum.title.text)
 					self.albums[webAlbum.title.text] = album
 					self.scanWebPhotos(album, webAlbum,	 deletedups)
-   
+
 
 	# @print_timing
 	def scanWebPhotos(self, foundAlbum, webAlbum,  deletedups):
@@ -231,13 +231,13 @@ class Albums:
 					else:
 						if mode[changed]==Actions.DELETE_REMOTE and not allowDelete[1] :
 							print ("Not deleteing remote file %s because permissions not granted using allowDelete" % file.getFullName())
-						else:						
+						else:
 							repeat(lambda: getattr(file, mode[changed].lower())(changed), "%s on %s identified as %s" % (mode[changed],	 file.getFullName(), changed ), False)
 				actionCounts[mode[changed]]+=1
 				count += 1
 			album.writeDate()
 		print("Finished transferring files. Total files found %s, composed of %s" % (count, str(actionCounts)))
-	@staticmethod 
+	@staticmethod
 	def createAlbumName(name,  index):
 		if index == 0:
 			return name
@@ -246,7 +246,7 @@ class Albums:
 	@staticmethod
 	def flatten(name):
 		return re.sub("#[0-9]*$","",name).rstrip()
-		
+
 
 class AlbumEntry:
 	def __init__(self, fileName,  albumName):
@@ -268,7 +268,7 @@ class AlbumEntry:
 				print "Attempting to write date ("+self.earliestDate+") to album "+self.albumName
 			for a in self.webAlbum:
 				album = a.getEditObject()
-				album.timestamp = gdata.photos.Timestamp(text=self.earliestDate) 
+				album.timestamp = gdata.photos.Timestamp(text=self.earliestDate)
 				edit_link = album.GetEditLink()
 				if edit_link == None:
 					print "Warning: Null edit link from "+a.albumTitle+" so skipping metadata update"
@@ -289,28 +289,28 @@ class AlbumEntry:
 				return path
 		self.paths.append(name)
 		return name
-	
+
 # Class to store web album details
 
 class WebAlbum:
 	def __init__(self, album,  numberFiles):
-		self.albumUri = album.GetPhotosUri() 
+		self.albumUri = album.GetPhotosUri()
 		self.albumTitle = album.title.text
 		self.numberFiles = numberFiles
 		self.albumid = album.id.text
 	def getEditObject(self):
 		# print "Getting id "+self.albumid +" = "+gd_client.GetEntry(self.albumid)
 		return gd_client.GetEntry(self.albumid)
-	 
+
 # Class to store details of an individual file
 
 class FileEntry:
 	def __init__(self, name, path,	webReference,  isLocal,	 album):
-		self.name = name
+		self.name = name.replace(os.sep,"",1)
 		if path:
 			self.path=path
 		else:
-			self.path=os.path.join(album.rootPath, name)
+			self.path=os.path.join(album.rootPath, self.name)
 		self.isLocal=isLocal
 		self.localHash=None
 		self.remoteHash=None
@@ -340,8 +340,8 @@ class FileEntry:
 	def getLocalHash(self):
 		if not(self.localHash):
 			md5 = hashlib.md5()
-			with open(self.path,'rb') as f: 
-				for chunk in iter(lambda: f.read(128*md5.block_size), b''): 
+			with open(self.path,'rb') as f:
+				for chunk in iter(lambda: f.read(128*md5.block_size), b''):
 					 md5.update(chunk)
 			self.localHash = md5.hexdigest()
 		return self.localHash
@@ -352,17 +352,17 @@ class FileEntry:
 	def changed(self, compareattributes):
 		if self.isLocal:
 			if self.isWeb():
-			# filesize (2), date (1),  hash (4) 
+			# filesize (2), date (1),  hash (4)
 				if compareattributes & 1:
 			# print "%s: remote=%s and local=%s" % (self.getFullName(), time.gmtime(self.remoteDate), time.gmtime(self.getLocalDate()))
-					if self.remoteDate < self.getLocalDate() + 60:	  
-						return Comparisons.REMOTE_OLDER		
-				if compareattributes & 2: 
+					if self.remoteDate < self.getLocalDate() + 60:
+						return Comparisons.REMOTE_OLDER
+				if compareattributes & 2:
 					if verbose:
 						print "%s: remote size=%s and local=%s" % (self.getFullName(),self.remoteSize,self.getLocalSize())
 					if self.remoteSize != self.getLocalSize():
-						return Comparisons.DIFFERENT		
-				if compareattributes & 4:				 
+						return Comparisons.DIFFERENT
+				if compareattributes & 4:
 					if self.remoteHash:
 						if self.remoteHash != self.getLocalHash():
 							return Comparisons.DIFFERENT
@@ -401,12 +401,12 @@ class FileEntry:
 		os.utime(path, (int(self.remoteDate), int(self.remoteDate)))
 	def delete_remote(self, event):
 		gd_client.Delete(self.getEditObject())
-		print ("Deleted %s" % self.getFullName())  
+		print ("Deleted %s" % self.getFullName())
 	def upload_local(self, event):
 		mimeType = mimetypes.guess_type(self.path)[0]
 		if mimeType in chosenFormats:
 			while (self.album.webAlbumIndex<len(self.album.webAlbum) and self.album.webAlbum[self.album.webAlbumIndex].numberFiles >= 999):
-				self.album.webAlbumIndex = self.album.webAlbumIndex + 1						   
+				self.album.webAlbumIndex = self.album.webAlbumIndex + 1
 			if self.album.webAlbumIndex>=len(self.album.webAlbum):
 				googleWebAlbum = gd_client.InsertAlbum(title=Albums.createAlbumName(self.album.getAlbumName(), self.album.webAlbumIndex), access='private', summary='synced from '+self.album.rootPath+' using github.com/leocrawford/picasawebsync')
 				subAlbum = WebAlbum(googleWebAlbum, 0)
@@ -416,12 +416,12 @@ class FileEntry:
 			else:
 				subAlbum = self.album.webAlbum[self.album.webAlbumIndex]
 			if mimeType in supportedImageFormats:
-				photo = self.upload_local_img(subAlbum, mimeType)	
-			if mimeType in supportedVideoFormats:			 
+				photo = self.upload_local_img(subAlbum, mimeType)
+			if mimeType in supportedVideoFormats:
 				if self.getLocalSize() > 1073741824:
 					print ("Not uploading %s because it exceeds maximum file size" % self.path)
 				else:
-					photo = self.upload_local_video(subAlbum, mimeType) 
+					photo = self.upload_local_video(subAlbum, mimeType)
 		else:
 			print ("Skipped %s (because can't upload file of type %s)." % (self.path, mimeType))
 	def upload_local_img(self,	subAlbum, mimeType):
@@ -433,18 +433,18 @@ class FileEntry:
 			currentFile=self.path
 			if (shrinkFile is not None):
 				currentFile=shrinkFile
-			photo = gd_client.InsertPhoto(subAlbum.albumUri, metadata, currentFile, mimeType) 
+			photo = gd_client.InsertPhoto(subAlbum.albumUri, metadata, currentFile, mimeType)
 			if (shrinkFile is not None):
 				os.remove(shrinkFile)
 			self.album.considerEarliestDate(photo.exif)
 			subAlbum.numberFiles = subAlbum.numberFiles + 1
-			return photo 
+			return photo
 	def upload_local_video(self,  subAlbum, mimeType):
 			name = urllib.quote(self.name, '')
 			metadata = gdata.photos.VideoEntry()
 			metadata.title=atom.Title(text=name) # have to quote as certain charecters, e.g. / seem to break it
 			self.addMetadata(metadata)
-			photo = gd_client.InsertVideo(subAlbum.albumUri, metadata, self.path, mimeType) 
+			photo = gd_client.InsertVideo(subAlbum.albumUri, metadata, self.path, mimeType)
 			subAlbum.numberFiles = subAlbum.numberFiles + 1
 			return photo
 	def addMetadata(self, metadata):
@@ -452,13 +452,13 @@ class FileEntry:
 			metadata.checksum = gdata.photos.Checksum(text=self.getLocalHash())
 			if verbose and (metadata == None):
 				print "Warning: "+self.name+" does not have a date set"
-	
+
 # Method to translate directory name to an album name	
-	
+
 def convertDirToAlbum(formElements,	 root,	name, replace, namingextract):
 	if root == name:
 		return "Home"
-	nameElements = re.split("/", re.sub("^/","",name[len(root):]))
+	nameElements = name[len(root):].replace(os.sep,"",1).split(os.sep)
 	which = min(len(formElements), len(nameElements))
 	work = formElements[which-1].format(*nameElements)
 	# apply naming extraction if provided
@@ -470,7 +470,7 @@ def convertDirToAlbum(formElements,	 root,	name, replace, namingextract):
 	if replace:
 		rePattern = replace.split('|')
 		work = re.sub(rePattern[0], rePattern[1], work)
-	  
+
 	return work
 
 supportedImageFormats = frozenset(["image/bmp", "image/gif",  "image/jpeg",	 "image/png"])
@@ -482,50 +482,50 @@ class Enum(set):
 		if name in self:
 			return name
 		raise AttributeError
-	
-Comparisons = Enum(['REMOTE_OLDER', 'DIFFERENT', 'SAME', 'UNKNOWN', 'LOCAL_ONLY', 'REMOTE_ONLY'])	
+
+Comparisons = Enum(['REMOTE_OLDER', 'DIFFERENT', 'SAME', 'UNKNOWN', 'LOCAL_ONLY', 'REMOTE_ONLY'])
 Actions = Enum(['UPLOAD_LOCAL', 'DELETE_LOCAL', 'SILENT', 'REPORT', 'DOWNLOAD_REMOTE', 'DELETE_REMOTE', 'TAG_REMOTE', 'REPLACE_REMOTE_WITH_LOCAL', 'UPDATE_REMOTE_METADATA'])
 UploadOnlyActions = {
-		Comparisons.REMOTE_OLDER:Actions.REPLACE_REMOTE_WITH_LOCAL, 
-		Comparisons.DIFFERENT:Actions.REPORT, 
-		Comparisons.SAME:Actions.SILENT, 
-		Comparisons.UNKNOWN:Actions.REPORT, 
-		Comparisons.LOCAL_ONLY:Actions.UPLOAD_LOCAL, 
+		Comparisons.REMOTE_OLDER:Actions.REPLACE_REMOTE_WITH_LOCAL,
+		Comparisons.DIFFERENT:Actions.REPORT,
+		Comparisons.SAME:Actions.SILENT,
+		Comparisons.UNKNOWN:Actions.REPORT,
+		Comparisons.LOCAL_ONLY:Actions.UPLOAD_LOCAL,
 		Comparisons.REMOTE_ONLY:Actions.REPORT}
 DownloadOnlyActions = {
-		Comparisons.REMOTE_OLDER:Actions.REPORT, 
-		Comparisons.DIFFERENT:Actions.DOWNLOAD_REMOTE, 
-		Comparisons.SAME:Actions.SILENT, 
-		Comparisons.UNKNOWN:Actions.REPORT, 
-		Comparisons.LOCAL_ONLY:Actions.REPORT, 
+		Comparisons.REMOTE_OLDER:Actions.REPORT,
+		Comparisons.DIFFERENT:Actions.DOWNLOAD_REMOTE,
+		Comparisons.SAME:Actions.SILENT,
+		Comparisons.UNKNOWN:Actions.REPORT,
+		Comparisons.LOCAL_ONLY:Actions.REPORT,
 		Comparisons.REMOTE_ONLY:Actions.DOWNLOAD_REMOTE}
 PassiveActions = {
-		Comparisons.REMOTE_OLDER:Actions.REPORT, 
-		Comparisons.DIFFERENT:Actions.REPORT, 
-		Comparisons.SAME:Actions.SILENT, 
-		Comparisons.UNKNOWN:Actions.REPORT, 
-		Comparisons.LOCAL_ONLY:Actions.REPORT, 
-		Comparisons.REMOTE_ONLY:Actions.REPORT}		   
+		Comparisons.REMOTE_OLDER:Actions.REPORT,
+		Comparisons.DIFFERENT:Actions.REPORT,
+		Comparisons.SAME:Actions.SILENT,
+		Comparisons.UNKNOWN:Actions.REPORT,
+		Comparisons.LOCAL_ONLY:Actions.REPORT,
+		Comparisons.REMOTE_ONLY:Actions.REPORT}
 RepairActions= {
-		Comparisons.REMOTE_OLDER:Actions.REPLACE_REMOTE_WITH_LOCAL, 
-		Comparisons.DIFFERENT:Actions.REPLACE_REMOTE_WITH_LOCAL, 
-		Comparisons.SAME:Actions.SILENT,  
-		Comparisons.UNKNOWN:Actions.UPDATE_REMOTE_METADATA, 
-		Comparisons.LOCAL_ONLY:Actions.UPLOAD_LOCAL, 
+		Comparisons.REMOTE_OLDER:Actions.REPLACE_REMOTE_WITH_LOCAL,
+		Comparisons.DIFFERENT:Actions.REPLACE_REMOTE_WITH_LOCAL,
+		Comparisons.SAME:Actions.SILENT,
+		Comparisons.UNKNOWN:Actions.UPDATE_REMOTE_METADATA,
+		Comparisons.LOCAL_ONLY:Actions.UPLOAD_LOCAL,
 		Comparisons.REMOTE_ONLY:Actions.DELETE_REMOTE}
 SyncActions= {
-		Comparisons.REMOTE_OLDER:Actions.REPLACE_REMOTE_WITH_LOCAL, 
-		Comparisons.DIFFERENT:Actions.REPORT, 
-		Comparisons.SAME:Actions.SILENT,  
-		Comparisons.UNKNOWN:Actions.REPORT, 
-		Comparisons.LOCAL_ONLY:Actions.UPLOAD_LOCAL, 
+		Comparisons.REMOTE_OLDER:Actions.REPLACE_REMOTE_WITH_LOCAL,
+		Comparisons.DIFFERENT:Actions.REPORT,
+		Comparisons.SAME:Actions.SILENT,
+		Comparisons.UNKNOWN:Actions.REPORT,
+		Comparisons.LOCAL_ONLY:Actions.UPLOAD_LOCAL,
 		Comparisons.REMOTE_ONLY:Actions.DOWNLOAD_REMOTE}
 SyncUploadActions= {
-		Comparisons.REMOTE_OLDER:Actions.REPLACE_REMOTE_WITH_LOCAL, 
-		Comparisons.DIFFERENT:Actions.REPLACE_REMOTE_WITH_LOCAL, 
-		Comparisons.SAME:Actions.SILENT,  
-		Comparisons.UNKNOWN:Actions.REPLACE_REMOTE_WITH_LOCAL, 
-		Comparisons.LOCAL_ONLY:Actions.UPLOAD_LOCAL, 
+		Comparisons.REMOTE_OLDER:Actions.REPLACE_REMOTE_WITH_LOCAL,
+		Comparisons.DIFFERENT:Actions.REPLACE_REMOTE_WITH_LOCAL,
+		Comparisons.SAME:Actions.SILENT,
+		Comparisons.UNKNOWN:Actions.REPLACE_REMOTE_WITH_LOCAL,
+		Comparisons.LOCAL_ONLY:Actions.UPLOAD_LOCAL,
 		Comparisons.REMOTE_ONLY:Actions.DELETE_REMOTE}
 
 modes = {'upload':UploadOnlyActions, 'download':DownloadOnlyActions, 'report':PassiveActions, 'repairUpload':RepairActions,'sync':SyncActions, 'syncUpload':SyncUploadActions}
@@ -537,7 +537,7 @@ def convertAllowDelete(string):
 
 def convertMode(string):
 	return modes[string]
-	
+
 def convertFormat(string):
 	return formats[string]
 
@@ -546,14 +546,14 @@ def repeat(function,  description, onFailRethrow):
 	for attempt in range(3):
 		try:
 			if verbose and (attempt > 0):
-				print ("Trying %s attempt %s" % (description, attempt) )	
+				print ("Trying %s attempt %s" % (description, attempt) )
 			return function()
 		except Exception,  e:
 			if exc_info == None:
 					exc_info = e
 			# FIXME - to try and stop 403 token expired
 			time.sleep(6)
-			if args.username:			 
+			if args.username:
 					gd_client.ProgrammaticLogin()
 			continue
 		else:
@@ -562,15 +562,15 @@ def repeat(function,  description, onFailRethrow):
 		print ("WARNING: Failed to %s. This was due to %s" % (description, exc_info))
 		if onFailRethrow:
 			raise exc_info
-			
+
 def oauthLogin(gd_client):
 	consumer_key = '1071578698912-8dq8g4ojojb2rihp6k3ql27tq8m5lc9s.apps.googleusercontent.com'
 	consumer_secret = 'zTvZBSDBFEIf4EovT04cXzjB'
-	
+
 	filename = os.path.join(os.path.expanduser('~'), ".picasawebsync")
 	gd_client.SetOAuthInputParameters(gdata.auth.OAuthSignatureMethod.HMAC_SHA1,consumer_key, consumer_secret=consumer_secret)
 	try:
-		f = open(filename, 'r') 
+		f = open(filename, 'r')
 		key = f.readline().rstrip()
 		secret = f.readline().rstrip()
 		f.close()
@@ -636,7 +636,7 @@ gd_client = gdata.photos.service.PhotosService(email='default')
 
 if args.username:
 	gd_client.email = args.username # Set your Picasaweb e-mail address...
-	gd_client.password = args.password 
+	gd_client.password = args.password
 	gd_client.source = 'api-sample-google-com'
 	gd_client.ProgrammaticLogin()
 else:
