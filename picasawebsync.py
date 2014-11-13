@@ -18,6 +18,8 @@ import calendar
 from subprocess import call
 
 PICASA_MAX_FREE_IMAGE_DIMENSION = 2048
+PICASA_MAX_PICTURES_PER_PAGE = 1000
+PICASA_MAX_PICTURES_PER_QUERY = 10000
 
 def which(program):
 	def is_exe(fpath):
@@ -186,31 +188,33 @@ class Albums:
 
 
 	# @print_timing
-	def scanWebPhotos(self, foundAlbum, webAlbum,  deletedups):
+	def scanWebPhotos(self, foundAlbum, apiWebAlbum,  deletedups):
 		# bit of a hack, but can't see anything in api to do it.
-		photos = repeat(lambda: gd_client.GetFeed(webAlbum.GetPhotosUri()+ "&imgmax=d"), "list photos in album %s" % foundAlbum.albumName, True)
-		webAlbum = WebAlbum(webAlbum, int(photos.total_results.text))
-		foundAlbum.webAlbum.append(webAlbum)
-		for photo in photos.entry:
-			if photo.title.text == None:
-				photoTitle=""
-			else:
-				photoTitle=urllib.unquote(photo.title.text)
-
-			if photoTitle in foundAlbum.entries:
-				entry = foundAlbum.entries[photoTitle]
-				if entry.isWeb():
-					if(deletedups):
-						print "Deleted dupe of %s on server" % photoTitle
-						repeat(lambda: gd_client.Delete(photo), "deleting dupe %s" % photoTitle, False)
-					else:
-						print "WARNING: More than one copy of %s - ignoring" % photoTitle
+		photoCount = int(apiWebAlbum.numphotos.text)
+		for start_index in xrange(1, min(photoCount, PICASA_MAX_PICTURES_PER_QUERY), PICASA_MAX_PICTURES_PER_PAGE):
+			photos = repeat(lambda: gd_client.GetFeed(apiWebAlbum.GetPhotosUri() + "&imgmax=d", PICASA_MAX_PICTURES_PER_PAGE, start_index), "list photos in album %s" % foundAlbum.albumName, True)
+			webAlbum = WebAlbum(apiWebAlbum, int(photos.total_results.text))
+			foundAlbum.webAlbum.append(webAlbum)
+			for photo in photos.entry:
+				if photo.title.text == None:
+					photoTitle=""
 				else:
-					entry.setWebReference(photo)
-				# print photo.exif.time
-			else:
-				fileEntry = FileEntry(photoTitle, None,	 photo, False, foundAlbum)
-				foundAlbum.entries[photoTitle] = fileEntry
+					photoTitle=urllib.unquote(photo.title.text)
+					
+				if photoTitle in foundAlbum.entries:
+					entry = foundAlbum.entries[photoTitle]
+					if entry.isWeb():
+						if(deletedups):
+							print "Deleted dupe of %s on server" % photoTitle
+							repeat(lambda: gd_client.Delete(photo), "deleting dupe %s" % photoTitle, False)
+						else:
+							print "WARNING: More than one copy of %s - ignoring" % photoTitle
+					else:
+						entry.setWebReference(photo)
+					# print photo.exif.time
+				else:
+					fileEntry = FileEntry(photoTitle, None,	 photo, False, foundAlbum)
+					foundAlbum.entries[photoTitle] = fileEntry
 	# @print_timing
 	def uploadMissingAlbumsAndFiles(self, compareattributes, mode, test, allowDelete):
 		size = 0
